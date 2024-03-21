@@ -1,13 +1,13 @@
 package event_emitter
 
 import (
-	"github.com/PayRam/event-emitter/internal/db"
+	"github.com/PayRam/event-emitter/internal/models"
 	"time"
 )
 
 type EventService interface {
-	CreateEvent(event db.Event) error
-	QueryEvents(query QuerySpec) ([]db.Event, error)
+	CreateEvent(event models.EEEvent) error
+	QueryEvents(query QuerySpec) ([]models.EEEvent, error)
 }
 
 type QuerySpec struct {

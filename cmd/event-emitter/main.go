@@ -2,21 +2,20 @@ package main
 
 import (
 	db2 "github.com/PayRam/event-emitter/internal/db"
+	"github.com/PayRam/event-emitter/internal/models"
 	service2 "github.com/PayRam/event-emitter/internal/service"
 	event_emitter "github.com/PayRam/event-emitter/pkg/event-emitter"
 	"log"
-	"time"
 )
 
 func main() {
-	db := db2.InitDB() // Initialize the database connection
+	db := db2.InitDB("/Users/sameer/payram/db/payram.db") // Initialize the database connection
 
 	// Example usage
-	service := service2.NewEventService(db)
-	err := service.CreateEvent(db2.Event{
-		EventName: "Sample Event",
+	service := service2.NewEventServiceWithDB(db)
+	err := service.CreateEvent(models.EEEvent{
+		EventName: "Sample EEEvent",
 		ProfileID: "123",
-		CreatedAt: time.Now(),
 		Attribute: `{"key": "value"}`,
 	})
 	if err != nil {
@@ -27,7 +26,7 @@ func main() {
 	events, err := service.QueryEvents(event_emitter.QuerySpec{
 		EventName: new(string),
 	})
-	//*events[0].EventName = "Sample Event" // assuming you want to query by EventName
+	//*events[0].EventName = "Sample EEEvent" // assuming you want to query by EventName
 	if err != nil {
 		log.Printf("failed to query events: %v", err)
 	}
