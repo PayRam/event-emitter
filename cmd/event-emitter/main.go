@@ -3,8 +3,8 @@ package main
 import (
 	db2 "github.com/PayRam/event-emitter/internal/db"
 	"github.com/PayRam/event-emitter/internal/models"
-	service2 "github.com/PayRam/event-emitter/internal/service"
-	event_emitter "github.com/PayRam/event-emitter/pkg/event-emitter"
+	service2 "github.com/PayRam/event-emitter/internal/serviceimpl"
+	service3 "github.com/PayRam/event-emitter/service"
 	"log"
 )
 
@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// Query example
-	events, err := service.QueryEvents(event_emitter.QuerySpec{
+	events, err := service.QueryEvents(service3.QuerySpec{
 		EventName: new(string),
 	})
 	//*events[0].EventName = "Sample EEEvent" // assuming you want to query by EventName

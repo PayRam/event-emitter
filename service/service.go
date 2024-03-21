@@ -1,4 +1,4 @@
-package event_emitter
+package service
 
 import (
 	"github.com/PayRam/event-emitter/internal/models"
