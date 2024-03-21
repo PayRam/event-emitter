@@ -2,7 +2,6 @@ package serviceimpl
 
 import (
 	"github.com/PayRam/event-emitter/internal/db"
-	"github.com/PayRam/event-emitter/internal/models"
 	"github.com/PayRam/event-emitter/service/param"
 	"gorm.io/gorm"
 )
@@ -21,14 +20,14 @@ func NewEventService(dbPath string) param.EventService {
 }
 
 // CreateEvent adds a new event to the database.
-func (s *service) CreateEvent(event models.EEEvent) error {
+func (s *service) CreateEvent(event param.EEEvent) error {
 	result := s.db.Create(&event)
 	return result.Error
 }
 
 // QueryEvents retrieves events based on the provided QuerySpec.
-func (s *service) QueryEvents(query param.QuerySpec) ([]models.EEEvent, error) {
-	tx := s.db.Model(&models.EEEvent{})
+func (s *service) QueryEvents(query param.QuerySpec) ([]param.EEEvent, error) {
+	tx := s.db.Model(&param.EEEvent{})
 
 	if query.ID != nil {
 		tx = tx.Where("id = ?", *query.ID)
@@ -52,7 +51,7 @@ func (s *service) QueryEvents(query param.QuerySpec) ([]models.EEEvent, error) {
 		}
 	}
 
-	var events []models.EEEvent
+	var events []param.EEEvent
 	result := tx.Find(&events)
 	return events, result.Error
 }

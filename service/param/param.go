@@ -1,13 +1,20 @@
 package param
 
 import (
-	"github.com/PayRam/event-emitter/internal/models"
+	"gorm.io/gorm"
 	"time"
 )
 
 type EventService interface {
-	CreateEvent(event models.EEEvent) error
-	QueryEvents(query QuerySpec) ([]models.EEEvent, error)
+	CreateEvent(event EEEvent) error
+	QueryEvents(query QuerySpec) ([]EEEvent, error)
+}
+
+type EEEvent struct {
+	gorm.Model // Embedded GORM model. Pointer not needed here.
+	EventName  string
+	ProfileID  string
+	Attribute  string // JSON data as string
 }
 
 type QuerySpec struct {

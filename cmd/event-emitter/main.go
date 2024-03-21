@@ -1,19 +1,24 @@
 package main
 
 import (
-	db2 "github.com/PayRam/event-emitter/internal/db"
-	"github.com/PayRam/event-emitter/internal/models"
 	service3 "github.com/PayRam/event-emitter/service"
 	"github.com/PayRam/event-emitter/service/param"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"log"
 )
 
 func main() {
-	db := db2.InitDB("/Users/sameer/payram/db/payram.db") // Initialize the database connection
+	db, err := gorm.Open(sqlite.Open("/Users/sameer/payram/db/payram.db"), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+
+	service := service3.NewEventServiceWithDB(db)
+	//service := service3.NewEventService("/Users/sameer/payram/db/payram.db")
 
 	// Example usage
-	service := service3.NewEventServiceWithDB(db)
-	err := service.CreateEvent(models.EEEvent{
+	err = service.CreateEvent(param.EEEvent{
 		EventName: "Sample EEEvent",
 		ProfileID: "123",
 		Attribute: `{"key": "value"}`,

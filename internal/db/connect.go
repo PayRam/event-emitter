@@ -2,7 +2,6 @@ package db
 
 import (
 	"github.com/PayRam/event-emitter/internal/migration"
-	"github.com/PayRam/event-emitter/internal/models"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -16,12 +15,12 @@ func InitDB(dbFilePath string) *gorm.DB {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	// AutoMigrate will create or update the tables based on the model
-	err = db.AutoMigrate(&models.EEEvent{})
-	if err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
-	}
+	db = Migrate(db)
 
+	return db
+}
+
+func Migrate(db *gorm.DB) *gorm.DB {
 	// Run migrations
 	if err := migrate(db); err != nil {
 		log.Fatalf("Migration failed: %v", err)
@@ -29,7 +28,6 @@ func InitDB(dbFilePath string) *gorm.DB {
 
 	// Log or handle successful database setup as needed
 	log.Printf("**** Database initialised and migrations run successfully ****")
-
 	return db
 }
 
