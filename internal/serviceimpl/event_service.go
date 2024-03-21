@@ -2,8 +2,9 @@ package serviceimpl
 
 import (
 	"github.com/PayRam/event-emitter/internal/db"
+	_interface "github.com/PayRam/event-emitter/internal/interface"
 	"github.com/PayRam/event-emitter/internal/models"
-	service2 "github.com/PayRam/event-emitter/service"
+	"github.com/PayRam/event-emitter/service/param"
 	"gorm.io/gorm"
 )
 
@@ -11,11 +12,11 @@ type service struct {
 	db *gorm.DB
 }
 
-func NewEventServiceWithDB(db *gorm.DB) service2.EventService {
+func NewEventServiceWithDB(db *gorm.DB) _interface.EventService {
 	return &service{db: db}
 }
 
-func NewEventService(dbPath string) service2.EventService {
+func NewEventService(dbPath string) _interface.EventService {
 	db := db.InitDB(dbPath)
 	return &service{db: db}
 }
@@ -27,7 +28,7 @@ func (s *service) CreateEvent(event models.EEEvent) error {
 }
 
 // QueryEvents retrieves events based on the provided QuerySpec.
-func (s *service) QueryEvents(query service2.QuerySpec) ([]models.EEEvent, error) {
+func (s *service) QueryEvents(query param.QuerySpec) ([]models.EEEvent, error) {
 	tx := s.db.Model(&models.EEEvent{})
 
 	if query.ID != nil {

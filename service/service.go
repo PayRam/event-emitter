@@ -1,19 +1,18 @@
 package service
 
 import (
-	"github.com/PayRam/event-emitter/internal/models"
-	"time"
+	"github.com/PayRam/event-emitter/internal/db"
+	_interface "github.com/PayRam/event-emitter/internal/interface"
+	"github.com/PayRam/event-emitter/internal/serviceimpl"
+	"gorm.io/gorm"
 )
 
-type EventService interface {
-	CreateEvent(event models.EEEvent) error
-	QueryEvents(query QuerySpec) ([]models.EEEvent, error)
+func NewEventServiceWithDB(db *gorm.DB) _interface.EventService {
+	// This assumes you have adjusted the visibility of serviceimpl or provided a way to access it from here.
+	return serviceimpl.NewEventServiceWithDB(db)
 }
 
-type QuerySpec struct {
-	ID         *uint // Use pointers to distinguish between zero-value and non-provided
-	EventName  *string
-	ProfileID  *string
-	CreatedAt  *time.Time
-	Attributes map[string]interface{} // For querying JSON attributes dynamically
+func NewEventService(dbPath string) _interface.EventService {
+	db := db.InitDB(dbPath)
+	return serviceimpl.NewEventServiceWithDB(db)
 }
