@@ -2,7 +2,6 @@ package serviceimpl
 
 import (
 	"github.com/PayRam/event-emitter/internal/db"
-	_interface "github.com/PayRam/event-emitter/internal/interface"
 	"github.com/PayRam/event-emitter/internal/models"
 	"github.com/PayRam/event-emitter/service/param"
 	"gorm.io/gorm"
@@ -12,11 +11,11 @@ type service struct {
 	db *gorm.DB
 }
 
-func NewEventServiceWithDB(db *gorm.DB) _interface.EventService {
+func NewEventServiceWithDB(db *gorm.DB) param.EventService {
 	return &service{db: db}
 }
 
-func NewEventService(dbPath string) _interface.EventService {
+func NewEventService(dbPath string) param.EventService {
 	db := db.InitDB(dbPath)
 	return &service{db: db}
 }

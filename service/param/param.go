@@ -1,6 +1,14 @@
 package param
 
-import "time"
+import (
+	"github.com/PayRam/event-emitter/internal/models"
+	"time"
+)
+
+type EventService interface {
+	CreateEvent(event models.EEEvent) error
+	QueryEvents(query QuerySpec) ([]models.EEEvent, error)
+}
 
 type QuerySpec struct {
 	ID         *uint // Use pointers to distinguish between zero-value and non-provided
