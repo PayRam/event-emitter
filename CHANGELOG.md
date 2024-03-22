@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2024-03-22
+
+### Added
+- added support of dynamic query to event table
+- code refactored
+- added README.md for better understanding of how to use library
+
 ## [0.1.4] - 2024-03-21
 
 ### Fixed

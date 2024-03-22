@@ -1,6 +1,7 @@
 package serviceimpl
 
 import (
+	"fmt"
 	"github.com/PayRam/event-emitter/internal/db"
 	"github.com/PayRam/event-emitter/service/param"
 	"gorm.io/gorm"
@@ -20,38 +21,78 @@ func NewEventService(dbPath string) param.EventService {
 }
 
 // CreateEvent adds a new event to the database.
-func (s *service) CreateEvent(event param.EEEvent) error {
-	result := s.db.Create(&event)
+func (s *service) CreateEvent(eventName string, profileId string, jsonData string) error {
+	result := s.db.Create(&param.EEEvent{
+		EventName: eventName,
+		ProfileID: &profileId,
+		Attribute: jsonData,
+	})
 	return result.Error
 }
 
-// QueryEvents retrieves events based on the provided QuerySpec.
-func (s *service) QueryEvents(query param.QuerySpec) ([]param.EEEvent, error) {
-	tx := s.db.Model(&param.EEEvent{})
+// CreateGenericEvent adds a new event to the database which does not have profile id
+func (s *service) CreateGenericEvent(eventName string, jsonData string) error {
+	result := s.db.Create(&param.EEEvent{
+		EventName: eventName,
+		Attribute: jsonData,
+	})
+	return result.Error
+}
 
-	if query.ID != nil {
-		tx = tx.Where("id = ?", *query.ID)
-	}
-	if query.EventName != nil {
-		tx = tx.Where("event_name = ?", *query.EventName)
-	}
-	if query.ProfileID != nil {
-		tx = tx.Where("profile_id = ?", *query.ProfileID)
-	}
-	if query.CreatedAt != nil {
-		tx = tx.Where("created_at = ?", *query.CreatedAt)
-	}
-
-	// Example of handling JSON attribute query; adjust based on actual needs
-	if len(query.Attributes) > 0 {
-		for key, value := range query.Attributes {
-			// Here you need to construct the correct SQL for JSON querying depending on your schema and requirements
-			// This is a simplistic example; actual implementation may vary
-			tx = tx.Where("json_extract(attribute, ?) = ?", "$."+key, value)
-		}
+func (s *service) QueryEvents(query param.QueryBuilder) ([]param.EEEvent, error) {
+	db, err := s.queryEventsRecurse(query)
+	if err != nil {
+		return nil, err
 	}
 
 	var events []param.EEEvent
-	result := tx.Find(&events)
-	return events, result.Error
+	if err := db.Find(&events).Error; err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
+
+func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB, error) {
+	var errRec error
+	subQuery := s.db.Model(&param.EEEvent{}) // Initialize subQuery at each recursion level
+
+	// Recurse if there's a nested QueryBuilder
+	if queryBuilder.QueryBuilderParam != nil {
+		var nestedSubQuery *gorm.DB
+		nestedSubQuery, errRec = s.queryEventsRecurse(*queryBuilder.QueryBuilderParam)
+		if errRec != nil {
+			return nil, errRec
+		}
+
+		for key, value := range queryBuilder.JoinWhereClause {
+			if value.Exclude {
+				subQuery = subQuery.Not(key+" IN (?)", nestedSubQuery.Select(value.Clause))
+			} else {
+				subQuery = subQuery.Or(key+" IN (?)", nestedSubQuery.Select(value.Clause))
+			}
+		}
+	}
+
+	if len(queryBuilder.EventName) > 0 {
+		subQuery = subQuery.Where("event_name IN ?", queryBuilder.EventName)
+	}
+
+	if len(queryBuilder.ProfileID) > 0 {
+		subQuery = subQuery.Where("profile_id IN ?", queryBuilder.ProfileID)
+	}
+
+	if queryBuilder.CreatedAtBefore != nil {
+		subQuery = subQuery.Where("created_at < ?", queryBuilder.CreatedAtBefore)
+	}
+	if queryBuilder.CreatedAtAfter != nil {
+		subQuery = subQuery.Where("created_at > ?", queryBuilder.CreatedAtAfter)
+	}
+
+	for key, value := range queryBuilder.Attributes {
+		jsonQuery := fmt.Sprintf("json_extract(attribute, '$.%s') = ?", key)
+		subQuery = subQuery.Where(jsonQuery, value)
+	}
+
+	return subQuery, nil
 }

@@ -7,7 +7,7 @@ import (
 )
 
 var Initialise = model.Migration{
-	ID: "2024032106111234",
+	ID: "202403210611-ee1234",
 	Migrate: func(db *gorm.DB) error {
 		return db.AutoMigrate(&param.EEEvent{})
 	},

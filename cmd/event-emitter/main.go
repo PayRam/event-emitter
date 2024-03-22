@@ -17,24 +17,42 @@ func main() {
 	service := service3.NewEventServiceWithDB(db)
 	//service := service3.NewEventService("/Users/sameer/payram/db/payram.db")
 
-	// Example usage
-	err = service.CreateEvent(param.EEEvent{
-		EventName: "Sample EEEvent",
-		ProfileID: "123",
-		Attribute: `{"key": "value"}`,
-	})
-	if err != nil {
-		log.Printf("failed to create event: %v", err)
+	//example usage
+	//err = service.CreateGenericEvent("Generic EEEvent", `{"key": "generic"}`)
+	//err = service.CreateEvent("deposit-received", "123", `{"refId": "123456"}`)
+	//err = service.CreateEvent("deposit-received", "323", `{"refId": "123457"}`)
+	//err = service.CreateEvent("deposit-received", "123", `{"refId": "123458"}`)
+	//err = service.CreateEvent("deposit-received", "123", `{"refId": "123459"}`)
+	//err = service.CreateEvent("deposit-received", "323", `{"refId": "123460"}`)
+	//err = service.CreateEvent("deposit-received-email-sent", "123", `{"refId": "123459"}`)
+
+	subQuery := param.QueryBuilder{
+		EventName: []string{"deposit-received-email-sent"},
 	}
 
-	// Query example
-	events, err := service.QueryEvents(param.QuerySpec{
-		EventName: new(string),
-	})
-	//*events[0].EventName = "Sample EEEvent" // assuming you want to query by EventName
-	if err != nil {
-		log.Printf("failed to query events: %v", err)
+	eNames := []string{"deposit-received"}
+
+	joinWhereClause := make(map[string]param.JoinClause)
+	joinClause := param.JoinClause{
+		Clause:  "json_extract(attribute, '$.refId')",
+		Exclude: true,
+	}
+	joinWhereClause["json_extract(attribute, '$.refId')"] = joinClause
+
+	builder := param.QueryBuilder{
+		EventName:         eNames,
+		JoinWhereClause:   joinWhereClause,
+		QueryBuilderParam: &subQuery,
 	}
 
-	log.Printf("Queried events: %+v", events)
+	queryEvents, err := service.QueryEvents(builder)
+	if err != nil {
+		return
+	}
+
+	log.Printf("-----------------------------------------")
+	for _, event := range queryEvents {
+		log.Printf("Event: %+v", event)
+		log.Printf("-----------------------------------------")
+	}
 }
