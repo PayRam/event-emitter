@@ -92,12 +92,12 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 
 	now := time.Now()
 	// Apply dynamic time range based on relative start and end durations
-	if queryBuilder.CreatedAtRelativeStartInMinute != nil {
-		start := now.Add(*queryBuilder.CreatedAtRelativeStartInMinute)
+	if queryBuilder.CreatedAtRelativeStart != nil {
+		start := now.Add(*queryBuilder.CreatedAtRelativeStart)
 		subQuery = subQuery.Where("created_at >= ?", start)
 	}
-	if queryBuilder.CreatedAtRelativeEndInMinute != nil {
-		end := now.Add(*queryBuilder.CreatedAtRelativeEndInMinute)
+	if queryBuilder.CreatedAtRelativeEnd != nil {
+		end := now.Add(*queryBuilder.CreatedAtRelativeEnd)
 		subQuery = subQuery.Where("created_at <= ?", end)
 	}
 

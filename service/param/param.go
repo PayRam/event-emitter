@@ -24,14 +24,14 @@ type JoinClause struct {
 }
 
 type QueryBuilder struct {
-	ID                             []uint // Use pointers to distinguish between zero-value and non-provided
-	EventNames                     []string
-	ProfileIDs                     []string
-	CreatedAtBefore                *time.Time
-	CreatedAtAfter                 *time.Time
-	CreatedAtRelativeStartInMinute *time.Duration         // Duration relative to now for the start of the time range
-	CreatedAtRelativeEndInMinute   *time.Duration         // Duration relative to now for the end of the time range
-	Attributes                     map[string]interface{} // For querying JSON attributes dynamically
-	JoinWhereClause                map[string]JoinClause  // For querying JSON attributes dynamically
-	SubQueryBuilder                *QueryBuilder
+	ID                     []uint // Use pointers to distinguish between zero-value and non-provided
+	EventNames             []string
+	ProfileIDs             []string
+	CreatedAtBefore        *time.Time
+	CreatedAtAfter         *time.Time
+	CreatedAtRelativeStart *time.Duration         // Duration relative to now for the start of the time range
+	CreatedAtRelativeEnd   *time.Duration         // Duration relative to now for the end of the time range
+	Attributes             map[string]interface{} // For querying JSON attributes dynamically
+	JoinWhereClause        map[string]JoinClause  // For querying JSON attributes dynamically
+	SubQueryBuilder        *QueryBuilder
 }
