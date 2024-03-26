@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2024-03-26
+
+### Added
+- added support for CreatedAtRelativeStartInMinute and CreatedAtRelativeEndInMinute
+- some of the field names refactored
+
 ## [1.0.0] - 2024-03-22
 
 ### Added
