@@ -5,6 +5,7 @@ import (
 	"github.com/PayRam/event-emitter/internal/db"
 	"github.com/PayRam/event-emitter/service/param"
 	"gorm.io/gorm"
+	"time"
 )
 
 type service struct {
@@ -58,9 +59,9 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 	subQuery := s.db.Model(&param.EEEvent{}) // Initialize subQuery at each recursion level
 
 	// Recurse if there's a nested QueryBuilder
-	if queryBuilder.QueryBuilderParam != nil {
+	if queryBuilder.SubQueryBuilder != nil {
 		var nestedSubQuery *gorm.DB
-		nestedSubQuery, errRec = s.queryEventsRecurse(*queryBuilder.QueryBuilderParam)
+		nestedSubQuery, errRec = s.queryEventsRecurse(*queryBuilder.SubQueryBuilder)
 		if errRec != nil {
 			return nil, errRec
 		}
@@ -74,12 +75,12 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 		}
 	}
 
-	if len(queryBuilder.EventName) > 0 {
-		subQuery = subQuery.Where("event_name IN ?", queryBuilder.EventName)
+	if len(queryBuilder.EventNames) > 0 {
+		subQuery = subQuery.Where("event_name IN ?", queryBuilder.EventNames)
 	}
 
-	if len(queryBuilder.ProfileID) > 0 {
-		subQuery = subQuery.Where("profile_id IN ?", queryBuilder.ProfileID)
+	if len(queryBuilder.ProfileIDs) > 0 {
+		subQuery = subQuery.Where("profile_id IN ?", queryBuilder.ProfileIDs)
 	}
 
 	if queryBuilder.CreatedAtBefore != nil {
@@ -87,6 +88,17 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 	}
 	if queryBuilder.CreatedAtAfter != nil {
 		subQuery = subQuery.Where("created_at > ?", queryBuilder.CreatedAtAfter)
+	}
+
+	now := time.Now()
+	// Apply dynamic time range based on relative start and end durations
+	if queryBuilder.CreatedAtRelativeStartInMinute != nil {
+		start := now.Add(*queryBuilder.CreatedAtRelativeStartInMinute)
+		subQuery = subQuery.Where("created_at >= ?", start)
+	}
+	if queryBuilder.CreatedAtRelativeEndInMinute != nil {
+		end := now.Add(*queryBuilder.CreatedAtRelativeEndInMinute)
+		subQuery = subQuery.Where("created_at <= ?", end)
 	}
 
 	for key, value := range queryBuilder.Attributes {
