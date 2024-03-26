@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("/Users/sameer/payram/db/payram.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("your.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -27,7 +27,7 @@ func main() {
 	//err = service.CreateEvent("deposit-received-email-sent", "123", `{"refId": "123459"}`)
 
 	subQuery := param.QueryBuilder{
-		EventName: []string{"deposit-received-email-sent"},
+		EventNames: []string{"deposit-received-email-sent"},
 	}
 
 	eNames := []string{"deposit-received"}
@@ -40,9 +40,9 @@ func main() {
 	joinWhereClause["json_extract(attribute, '$.refId')"] = joinClause
 
 	builder := param.QueryBuilder{
-		EventName:         eNames,
-		JoinWhereClause:   joinWhereClause,
-		QueryBuilderParam: &subQuery,
+		EventNames:      eNames,
+		JoinWhereClause: joinWhereClause,
+		SubQueryBuilder: &subQuery,
 	}
 
 	queryEvents, err := service.QueryEvents(builder)
