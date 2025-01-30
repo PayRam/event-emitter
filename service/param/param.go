@@ -6,16 +6,18 @@ import (
 )
 
 type EventService interface {
-	CreateEvent(eventName string, profileId string, jsonData string) error
-	CreateGenericEvent(eventName string, jsonData string) error
+	CreateEvent(eventName string, jsonData string, profileID *string) (*EEEvent, error)
+	CreateTimedEvent(eventName string, jsonData string, profileID *string, validUntil time.Time) (*EEEvent, error)
+	CreateSimpleEvent(eventName string, jsonData string) (*EEEvent, error)
 	QueryEvents(query QueryBuilder) ([]EEEvent, error)
 }
 
 type EEEvent struct {
-	gorm.Model         // Embedded GORM model. Pointer not needed here.
-	EventName  string  `gorm:"type:varchar(200);not null;index"`
-	ProfileID  *string `gorm:"type:varchar(200);index"`
-	Attribute  string  `gorm:"type:text"`
+	gorm.Model            // Embedded GORM model. Pointer not needed here.
+	EventName  string     `gorm:"type:varchar(200);not null;index"`
+	ProfileID  *string    `gorm:"type:varchar(200);index"`
+	Attribute  string     `gorm:"type:text"`
+	ValidUntil *time.Time `gorm:"index"` // Nullable ValidUntil field
 }
 
 type JoinClause struct {

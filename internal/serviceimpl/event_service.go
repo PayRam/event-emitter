@@ -1,6 +1,7 @@
 package serviceimpl
 
 import (
+	"errors"
 	"fmt"
 	"github.com/PayRam/event-emitter/internal/db"
 	"github.com/PayRam/event-emitter/service/param"
@@ -21,23 +22,58 @@ func NewEventService(dbPath string) param.EventService {
 	return &service{db: db}
 }
 
-// CreateEvent adds a new event to the database.
-func (s *service) CreateEvent(eventName string, profileId string, jsonData string) error {
-	result := s.db.Create(&param.EEEvent{
+// CreateEvent adds a new event to the database with optional ValidUntil.
+func (s *service) CreateEvent(eventName string, jsonData string, profileID *string) (*param.EEEvent, error) {
+
+	event := &param.EEEvent{
 		EventName: eventName,
-		ProfileID: &profileId,
+		ProfileID: profileID,
 		Attribute: jsonData,
-	})
-	return result.Error
+	}
+
+	result := s.db.Create(event)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return event, nil
 }
 
-// CreateGenericEvent adds a new event to the database which does not have profile id
-func (s *service) CreateGenericEvent(eventName string, jsonData string) error {
-	result := s.db.Create(&param.EEEvent{
+// CreateTimedEvent adds a new event to the database with a ValidUntil field.
+func (s *service) CreateTimedEvent(eventName string, jsonData string, profileID *string, validUntil time.Time) (*param.EEEvent, error) {
+	// Ensure ValidUntil is not in the past
+	if validUntil.Before(time.Now()) {
+		return nil, errors.New("validUntil cannot be set to a past time")
+	}
+
+	event := &param.EEEvent{
+		EventName:  eventName,
+		ProfileID:  profileID,
+		Attribute:  jsonData,
+		ValidUntil: &validUntil,
+	}
+
+	result := s.db.Create(event)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return event, nil
+}
+
+// CreateSimpleEvent adds a new event to the database which does not have a profile ID.
+func (s *service) CreateSimpleEvent(eventName string, jsonData string) (*param.EEEvent, error) {
+	event := &param.EEEvent{
 		EventName: eventName,
 		Attribute: jsonData,
-	})
-	return result.Error
+	}
+
+	result := s.db.Create(event)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return event, nil
 }
 
 func (s *service) QueryEvents(query param.QueryBuilder) ([]param.EEEvent, error) {
@@ -105,6 +141,10 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 		jsonQuery := fmt.Sprintf("json_extract(attribute, '$.%s') = ?", key)
 		subQuery = subQuery.Where(jsonQuery, value)
 	}
+
+	subQuery = subQuery.Where("valid_until IS NULL OR valid_until >= ?", now)
+
+	subQuery = subQuery.Order("created_at ASC")
 
 	return subQuery, nil
 }

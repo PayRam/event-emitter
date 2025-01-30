@@ -6,6 +6,12 @@ Import in your project
 ```
 require github.com/PayRam/event-emitter v0.1.0
 ```
+
+Running test cases
+```
+go test ./... -v 
+```
+
 Run Jobs
 ```
 //example usage

@@ -18,7 +18,7 @@ func main() {
 	//service := service3.NewEventService("/Users/sameer/payram/db/payram.db")
 
 	//example usage
-	//err = service.CreateGenericEvent("Generic EEEvent", `{"key": "generic"}`)
+	_, err = service.CreateSimpleEvent("Generic EEEvent", `{"key": "generic"}`)
 	//err = service.CreateEvent("deposit-received", "123", `{"refId": "123456"}`)
 	//err = service.CreateEvent("deposit-received", "323", `{"refId": "123457"}`)
 	//err = service.CreateEvent("deposit-received", "123", `{"refId": "123458"}`)

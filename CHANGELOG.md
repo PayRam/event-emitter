@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2025-01-30
+
+### Added
+- added valid until field in event. event will be valid until that time.
+- query will by default use valid until check
+- added CreateTimedEvent method to create timed event
+- added test cases for all the methods
+
 ## [1.0.2] - 2024-03-26
 
 ### Change
