@@ -138,7 +138,8 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 	}
 
 	for key, value := range queryBuilder.Attributes {
-		jsonQuery := fmt.Sprintf("json_extract(attribute, '$.%s') = ?", key)
+		// 🟢 PostgreSQL JSONB syntax
+		jsonQuery := fmt.Sprintf("attribute::jsonb ->> '%s' = ?", key)
 		subQuery = subQuery.Where(jsonQuery, value)
 	}
 

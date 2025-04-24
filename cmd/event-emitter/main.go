@@ -34,10 +34,10 @@ func main() {
 
 	joinWhereClause := make(map[string]param.JoinClause)
 	joinClause := param.JoinClause{
-		Clause:  "json_extract(attribute, '$.refId')",
+		Clause:  `attribute::jsonb ->>'refId'`, // ✅ PostgreSQL jsonb syntax
 		Exclude: true,
 	}
-	joinWhereClause["json_extract(attribute, '$.refId')"] = joinClause
+	joinWhereClause["attribute::jsonb ->>'refId'"] = joinClause
 
 	builder := param.QueryBuilder{
 		EventNames:      eNames,
