@@ -140,7 +140,7 @@ func (s *service) queryEventsRecurse(queryBuilder param.QueryBuilder) (*gorm.DB,
 	for key, value := range queryBuilder.Attributes {
 		// 🟢 PostgreSQL JSONB syntax
 		jsonQuery := fmt.Sprintf("attribute::jsonb ->> '%s' = ?", key)
-		subQuery = subQuery.Where(jsonQuery, value)
+		subQuery = subQuery.Where(jsonQuery, fmt.Sprintf("%v", value))
 	}
 
 	subQuery = subQuery.Where("valid_until IS NULL OR valid_until >= ?", now)
