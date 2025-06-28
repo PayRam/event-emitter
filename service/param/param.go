@@ -7,8 +7,11 @@ import (
 
 type EventService interface {
 	CreateEvent(eventName string, jsonData string, profileID *string) (*EEEvent, error)
+	CreateEventWithInfo(eventName string, jsonData string, info string, profileID *string) (*EEEvent, error)
 	CreateTimedEvent(eventName string, jsonData string, profileID *string, validUntil time.Time) (*EEEvent, error)
+	CreateTimedEventWithInfo(eventName string, jsonData string, info string, profileID *string, validUntil time.Time) (*EEEvent, error)
 	CreateSimpleEvent(eventName string, jsonData string) (*EEEvent, error)
+	CreateSimpleEventWithInfo(eventName string, jsonData string, info string) (*EEEvent, error)
 	QueryEvents(query QueryBuilder) ([]EEEvent, error)
 }
 
@@ -18,6 +21,7 @@ type EEEvent struct {
 	ProfileID  *string    `gorm:"type:varchar(200);index"`
 	Attribute  string     `gorm:"type:text"`
 	ValidUntil *time.Time `gorm:"index"` // Nullable ValidUntil field
+	Info       *string    `gorm:"type:text"`
 }
 
 type JoinClause struct {

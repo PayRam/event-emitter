@@ -6,6 +6,7 @@ import (
 	"github.com/PayRam/event-emitter/internal/db"
 	"github.com/PayRam/event-emitter/service/param"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -39,6 +40,28 @@ func (s *service) CreateEvent(eventName string, jsonData string, profileID *stri
 	return event, nil
 }
 
+// CreateEventWithInfo adds a new event to the database with additional info.
+func (s *service) CreateEventWithInfo(eventName string, jsonData string, info string, profileID *string) (*param.EEEvent, error) {
+	info = strings.TrimSpace(info)
+	if info == "" {
+		return nil, errors.New("info cannot be empty")
+	}
+
+	event := &param.EEEvent{
+		EventName: eventName,
+		ProfileID: profileID,
+		Attribute: jsonData,
+		Info:      &info,
+	}
+
+	result := s.db.Create(event)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return event, nil
+}
+
 // CreateTimedEvent adds a new event to the database with a ValidUntil field.
 func (s *service) CreateTimedEvent(eventName string, jsonData string, profileID *string, validUntil time.Time) (*param.EEEvent, error) {
 	// Ensure ValidUntil is not in the past
@@ -61,11 +84,58 @@ func (s *service) CreateTimedEvent(eventName string, jsonData string, profileID 
 	return event, nil
 }
 
+// CreateTimedEventWithInfo adds a new event to the database with additional info and a ValidUntil field.
+func (s *service) CreateTimedEventWithInfo(eventName string, jsonData string, info string, profileID *string, validUntil time.Time) (*param.EEEvent, error) {
+	info = strings.TrimSpace(info)
+	if info == "" {
+		return nil, errors.New("info cannot be empty")
+	}
+	// Ensure ValidUntil is not in the past
+	if validUntil.Before(time.Now()) {
+		return nil, errors.New("validUntil cannot be set to a past time")
+	}
+
+	event := &param.EEEvent{
+		EventName:  eventName,
+		ProfileID:  profileID,
+		Attribute:  jsonData,
+		ValidUntil: &validUntil,
+		Info:       &info,
+	}
+
+	result := s.db.Create(event)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return event, nil
+}
+
 // CreateSimpleEvent adds a new event to the database which does not have a profile ID.
 func (s *service) CreateSimpleEvent(eventName string, jsonData string) (*param.EEEvent, error) {
 	event := &param.EEEvent{
 		EventName: eventName,
 		Attribute: jsonData,
+	}
+
+	result := s.db.Create(event)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return event, nil
+}
+
+// CreateSimpleEventWithInfo adds a new event to the database with additional info and no profile ID.
+func (s *service) CreateSimpleEventWithInfo(eventName string, jsonData string, info string) (*param.EEEvent, error) {
+	info = strings.TrimSpace(info)
+	if info == "" {
+		return nil, errors.New("info cannot be empty")
+	}
+	event := &param.EEEvent{
+		EventName: eventName,
+		Attribute: jsonData,
+		Info:      &info,
 	}
 
 	result := s.db.Create(event)

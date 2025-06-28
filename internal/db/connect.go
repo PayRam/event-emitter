@@ -44,6 +44,11 @@ func migrate(db *gorm.DB) error {
 			Migrate:  migration.AddValidUntil.Migrate,
 			Rollback: migration.AddValidUntil.Rollback,
 		},
+		{ // Integrate the CreateUserTable migration
+			ID:       migration.AddInfo.ID,
+			Migrate:  migration.AddInfo.Migrate,
+			Rollback: migration.AddInfo.Rollback,
+		},
 	})
 
 	return m.Migrate()

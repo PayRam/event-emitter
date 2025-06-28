@@ -88,6 +88,18 @@ func createEvent(t *testing.T, eventName, jsonData string, profileID string) *pa
 	return event
 }
 
+func createEventWithInfo(t *testing.T, eventName, jsonData string, info string) *param.EEEvent {
+	event, err := eventService.CreateSimpleEventWithInfo(eventName, jsonData, info)
+	assert.NoError(t, err)
+	assert.NotNil(t, event)
+	assert.Greater(t, event.ID, uint(0), "Failed to create event with info")
+	assert.Equal(t, event.EventName, eventName)
+	assert.Equal(t, event.Attribute, jsonData)
+	assert.Equal(t, *event.Info, info)
+	assert.Nil(t, event.ValidUntil)
+	return event
+}
+
 func createTimedEvent(t *testing.T, eventName, jsonData string, profileID string, validUntil time.Time) *param.EEEvent {
 	event, err := eventService.CreateTimedEvent(eventName, jsonData, &profileID, validUntil)
 	assert.NoError(t, err)
@@ -97,6 +109,19 @@ func createTimedEvent(t *testing.T, eventName, jsonData string, profileID string
 	assert.Equal(t, *event.ProfileID, profileID)
 	assert.Equal(t, event.Attribute, jsonData)
 	assert.Equal(t, *event.ValidUntil, validUntil)
+	return event
+}
+
+func createTimedEventWithInfo(t *testing.T, eventName, jsonData string, info string, profileID string, validUntil time.Time) *param.EEEvent {
+	event, err := eventService.CreateTimedEventWithInfo(eventName, jsonData, info, &profileID, validUntil)
+	assert.NoError(t, err)
+	assert.NotNil(t, event)
+	assert.Greater(t, event.ID, uint(0), "Failed to create timed event with info")
+	assert.Equal(t, event.EventName, eventName)
+	assert.Equal(t, *event.ProfileID, profileID)
+	assert.Equal(t, event.Attribute, jsonData)
+	assert.Equal(t, *event.ValidUntil, validUntil)
+	assert.Equal(t, *event.Info, info)
 	return event
 }
 
@@ -128,6 +153,38 @@ func queryDepositReceivedEvents(t *testing.T, expectedIds []uint) {
 
 	for i, event := range queryEvents {
 		assert.Equal(t, expectedIds[i], event.ID)
+	}
+}
+
+func queryDepositReceivedEventsWithInfo(t *testing.T, expectedIds []uint) {
+	subQuery := param.QueryBuilder{
+		EventNames: []string{"deposit-received-email-sent"},
+	}
+
+	eNames := []string{"deposit-received"}
+
+	joinWhereClause := make(map[string]param.JoinClause)
+	joinClause := param.JoinClause{
+		Clause:  "attribute::jsonb ->>'refId'",
+		Exclude: true,
+	}
+	joinWhereClause["attribute::jsonb ->>'refId'"] = joinClause
+
+	builder := param.QueryBuilder{
+		EventNames:      eNames,
+		JoinWhereClause: joinWhereClause,
+		SubQueryBuilder: &subQuery,
+	}
+
+	queryEvents, err := eventService.QueryEvents(builder)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, len(expectedIds), len(queryEvents))
+
+	for i, event := range queryEvents {
+		assert.Equal(t, expectedIds[i], event.ID)
+		assert.NotNil(t, event.Info)
 	}
 }
 
@@ -174,6 +231,14 @@ func TestSimpleEvent(t *testing.T) {
 	_ = createEvent(t, "deposit-received-email-sent", `{"refId": "123457"}`, "123")
 
 	queryDepositReceivedEvents(t, []uint{event1.ID, event3.ID, event5.ID})
+
+	_ = createEvent(t, "deposit-received-email-sent", `{"refId": "123456"}`, "123")
+	_ = createEvent(t, "deposit-received-email-sent", `{"refId": "123458"}`, "123")
+	_ = createEvent(t, "deposit-received-email-sent", `{"refId": "123460"}`, "123")
+
+	eventInfo1 := createEventWithInfo(t, "deposit-received", `{"refId": "123461"}`, "email sent for 123461")
+
+	queryDepositReceivedEventsWithInfo(t, []uint{eventInfo1.ID})
 
 	event6 := createTimedEvent(t, "timed-deposit-received", `{"refId": "123456"}`, "123", time.Now().Add(time.Second*2))
 
